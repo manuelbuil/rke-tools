@@ -1,8 +1,6 @@
 FROM nginx:1.24.0-alpine as base
 
 ENV DOCKER_VERSION=20.10.24
-ENV CNI_PLUGINS_VERSION=v1.2.0
-ENV FLANNEL_VERSION=v1.2.0
 ENV ETCD_VERSION=v3.5.6
 ENV CRIDOCKERD_VERSION=0.3.4
 ENV RANCHER_CONFD_VERSION=v0.16.5-rc2
@@ -29,11 +27,6 @@ RUN apk -U --no-cache add curl wget ca-certificates tar sysstat acl\
     && chmod +x /usr/local/bin/kubectl \
     && apk del curl
 
-RUN mkdir -p /opt/cni/bin
-RUN wget -q -O - https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-linux-${ARCH}-${CNI_PLUGINS_VERSION}.tgz | tar xzf - -C /tmp \
-    && wget -q -O /tmp/flannel "https://github.com/flannel-io/cni-plugin/releases/download/${FLANNEL_VERSION}/flannel-${ARCH}" \
-    && chmod +x /tmp/flannel
-
 ENV ETCD_URL=https://github.com/etcd-io/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-${ARCH}.tar.gz
 
 RUN wget -q -O - "${ETCD_URL}" | tar xzf - -C /tmp && \
@@ -58,24 +51,6 @@ COPY --from=xx / /
 
 ARG TARGETOS=linux
 ARG TARGETARCH=${ARCH}
-
-RUN xx-verify --static /tmp/bandwidth \
-    && xx-verify --static /tmp/bridge \
-    && xx-verify --static /tmp/dhcp \
-    && xx-verify --static /tmp/firewall \
-    && xx-verify --static /tmp/flannel \
-    && xx-verify --static /tmp/host-device \
-    && xx-verify --static /tmp/host-local \
-    && xx-verify --static /tmp/ipvlan \
-    && xx-verify --static /tmp/loopback \
-    && xx-verify --static /tmp/macvlan \
-    && xx-verify --static /tmp/portmap \
-    && xx-verify --static /tmp/ptp \
-    && xx-verify --static /tmp/sbr \
-    && xx-verify --static /tmp/static \
-    && xx-verify --static /tmp/tuning \
-    && xx-verify --static /tmp/vlan \
-    && xx-verify --static /tmp/vrf
 
 RUN xx-verify --static /opt/rke-tools/bin/cri-dockerd \
     && xx-verify --static /opt/rke-tools/bin/docker \
